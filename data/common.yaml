@@ -5,7 +5,7 @@ capitains::data_root: '/local/www-data/capitains-repositories' # Where we copy f
 capitains::app_root: '/local/www-data/capitains-app' # Path where python code lies
 capitains::venvdir: "%{hiera('capitains::app_root')}/venvs"
 capitains::redis_host: 'localhost'
-capitains::workdir: '/local/www-data/capitains-respositories-sync-check' # Path where we clone from github and pull from
+capitains::workdir: '/local/www-data/capitains-repositories-sync-check' # Path where we clone from github and pull from
 capitains::ci_url: 'http://ci.perseids.org/api/rest/v1.0/code/'
 capitains::repo_base_url: 'https://github.com/'
 capitains::repos: 
