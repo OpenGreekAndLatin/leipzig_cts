@@ -63,7 +63,7 @@ class capitains($www_root,
   }
 
   exec { 'restart-gunicorn':
-    command     => '${capitains::venvdir}/bin/gunicorn restart',
+    command     => "${capitains::venvdir}bin/gunicorn restart",
     refreshonly => true,
     require     => Python::Gunicorn['vhost'],
   }
