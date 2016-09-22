@@ -1,0 +1,9 @@
+:hierarchy:
+    - "%{::hostname}"
+    - "%{::operatingsystem}"
+    - "%{::lsbdistcodename}"
+    - common
+:backends:
+    - yaml
+:yaml:
+    :datadir: '/local/puppet/data'

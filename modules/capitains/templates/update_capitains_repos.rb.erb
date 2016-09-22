@@ -1,0 +1,46 @@
+#!/usr/bin/ruby
+# vim: set ft=ruby :
+
+@force = (ARGV[0] == "--force")
+APP_ROOT = "<%= scope.lookupvar('capitains::app_root') %>"
+DATA_ROOT = "<%= scope.lookupvar('capitains::data_root') %>"
+WORKDIR = "<%= scope.lookupvar('capitains::workdir') %>"
+VENVDIR = "<%= scope.lookupvar('capitains::venvdir') %>"
+CI_URL = "<%= scope.lookupvar('capitains::ci_url') %>"
+REPOS = <%= scope.lookupvar('capitains::repos') %>
+PYTHON = "#{VENVDIR}/bin/python3"
+DEBUG = ENV['DEBUG'] || false
+
+def debug_print(message)
+  if DEBUG
+    puts message
+  end
+end
+
+def shell(cmd)
+  debug_print "\nCommand: #{cmd}\n"
+  raw_output = `#{cmd}`
+  exitstatus = $?.exitstatus
+  debug_print "Output: #{raw_output}"
+  debug_print "Exit status: #{exitstatus}"
+  return raw_output
+end
+
+if @force
+  debug_print "Forcing rebuild whether there is new data or not"
+end
+new_data = false
+REPOS.each do |r|
+  raw_output = `cd #{WORKDIR}/#{r['name']} && git pull`
+  if raw_output !~ /up-to-date/ or @force
+    new_data = true
+    shell("rsync -Pav --delete --exclude .git/ #{WORKDIR}/#{r['name']}/ #{DATA_ROOT}/#{r['name']}/")
+    shell("#{PYTHON} #{APP_ROOT}/hookclean.py -c #{CI_URL} -r #{r['cibase']} -b #{DATA_ROOT}/#{r['name']}/")
+  end
+end
+
+if new_data or @force
+  shell("#{PYTHON} #{APP_ROOT}/manager.py nautilus flush")
+  shell("#{PYTHON} #{APP_ROOT}/manager.py nautilus preprocess")
+  shell("/usr/sbin/service gunicorn restart")
+end
