@@ -1,6 +1,6 @@
 apparmor: false
 capitains::domain: 'cts.dh.uni-leipzig.de'
-capitains::www_root: '/' # Path for NGinx to store stuff it it wants to store stuff
+capitains::www_root: '/local/www-data/nginx-www' # Path for NGinx to store stuff it it wants to store stuff
 capitains::data_root: '/local/www-data/capitains-repositories' # Where we copy from workdir and sync the Git CTS Repositories with Hook
 capitains::app_root: '/local/www-data/capitains-app' # Path where python code lies
 capitains::venvdir: "%{hiera('capitains::app_root')}/venvs"

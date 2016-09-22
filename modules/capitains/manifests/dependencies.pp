@@ -3,7 +3,7 @@ class capitains::dependencies {
   class { 'redis': }
 
   class { 'python':
-    version    => '3.4',
+    version    => '3',
     pip        => 'present',
     dev        => 'present',
     virtualenv => 'present',
