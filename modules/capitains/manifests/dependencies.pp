@@ -7,7 +7,6 @@ class capitains::dependencies {
     pip        => 'present',
     dev        => 'present',
     virtualenv => 'present',
-    gunicorn   => 'present',
   }
 
   ensure_packages(hiera('capitains::deps'))
