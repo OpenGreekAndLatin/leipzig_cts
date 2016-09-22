@@ -7,6 +7,7 @@ from capitains_nautilus.flask_ext import FlaskNautilus, WerkzeugCacheWrapper
 from werkzeug.contrib.cache import RedisCache
 from flask_cache import Cache
 from pkg_resources import resource_filename
+from cts_leipzig_ui import CTSLeipzigUI
 import os
      
 d = "<%= @data_root %>"
@@ -31,6 +32,7 @@ nemo = Nemo(
     chunker={
         "default": level_grouper
     },
+    plugins=[CTSLeipzigUI()]
     transform={
         "default": resource_filename("perseus_nemo_ui","data/assets/static/xslt/epidocShort.xsl")
     },
