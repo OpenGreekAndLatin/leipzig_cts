@@ -42,6 +42,9 @@
 # [*template*]
 #  Which ERB template to use. Default: python/gunicorn.erb
 #
+# [*args*]
+#  Custom arguments to add in gunicorn config file. Default: []
+#
 # === Examples
 #
 # python::gunicorn { 'vhost':
@@ -77,11 +80,13 @@ define python::gunicorn (
   $appmodule         = 'app:app',
   $osenv             = false,
   $timeout           = 30,
+  $workers           = false,
   $access_log_format = false,
   $accesslog         = false,
   $errorlog          = false,
   $log_level          = 'error',
   $template          = 'python/gunicorn.erb',
+  $args              = [],
 ) {
 
   # Parameter validation

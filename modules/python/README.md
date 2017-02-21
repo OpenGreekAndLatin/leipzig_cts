@@ -15,6 +15,7 @@ Puppet module for installing and managing python, pip, virtualenvs and Gunicorn 
 * 1.9.3
 * 2.0.0
 * 2.1.0
+* 2.3.1
 
 ## OS Distributions ##
 
@@ -26,6 +27,7 @@ This module has been tested to work on the following systems.
 * EL 5
 * EL 6
 * EL 7
+* Gentoo (and Sabayon)
 * Suse 11
 * Ubuntu 10.04
 * Ubuntu 12.04
@@ -64,7 +66,7 @@ Installs and manages python, python-pip, python-dev, python-virtualenv and Gunic
 
 **manage_gunicorn** - Allow Installation / Removal of Gunicorn. Default: true
 
-**use_epel** - Boolean to determine if the epel class is used. Default: true
+**use_epel** - Boolean to determine if the epel class is used. Default: true on RHEL like systems, false otherwise
 
 ```puppet
   class { 'python' :

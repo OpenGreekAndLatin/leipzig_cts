@@ -85,7 +85,7 @@ define python::pip (
 
   $python_provider = getparam(Class['python'], 'provider')
   $python_version  = getparam(Class['python'], 'version')
-  
+
   # Get SCL exec prefix
   # NB: this will not work if you are running puppet from scl enabled shell
   $exec_prefix = $python_provider ? {
@@ -93,7 +93,7 @@ define python::pip (
     'rhscl' => "scl enable ${python_version} -- ",
     default => '',
   }
-  
+
   # Parameter validation
   if ! $virtualenv {
     fail('python::pip: virtualenv parameter must not be empty')
@@ -117,12 +117,17 @@ define python::pip (
 
   $pip_env = $virtualenv ? {
     'system' => "${exec_prefix}pip",
-    default  => "${virtualenv}/bin/pip",
+    default  => "${exec_prefix}${virtualenv}/bin/pip",
   }
 
   $pypi_index = $index ? {
       false   => '',
       default => "--index-url=${index}",
+    }
+
+  $pypi_search_index = $index ? {
+      false   => '',
+      default => "--index=${index}",
     }
 
   $proxy_flag = $proxy ? {
@@ -147,7 +152,7 @@ define python::pip (
   }
 
   # Check if searching by explicit version.
-  if $ensure =~ /^((19|20)[0-9][0-9]-(0[1-9]|1[1-2])-([0-2][1-9]|3[0-1])|[0-9]+\.[0-9]+(\.[0-9]+)?)$/ {
+  if $ensure =~ /^((19|20)[0-9][0-9]-(0[1-9]|1[1-2])-([0-2][1-9]|3[0-1])|[0-9]+\.\w+\+?\w*(\.\w+)*)$/ {
     $grep_regex = "^${pkgname}==${ensure}\$"
   } else {
     $grep_regex = $pkgname ? {
@@ -209,12 +214,12 @@ define python::pip (
     }
   } else {
     case $ensure {
-      /^((19|20)[0-9][0-9]-(0[1-9]|1[1-2])-([0-2][1-9]|3[0-1])|[0-9]+\.[0-9]+(\.[0-9]+)?)$/: {
+      /^((19|20)[0-9][0-9]-(0[1-9]|1[1-2])-([0-2][1-9]|3[0-1])|[0-9]+\.\w+\+?\w*(\.\w+)*)$/: {
         # Version formats as per http://guide.python-distribute.org/specification.html#standard-versioning-schemes
         # Explicit version.
         exec { "pip_install_${name}":
           command     => "${pip_env} wheel --help > /dev/null 2>&1 && { ${pip_env} wheel --version > /dev/null 2>&1 || wheel_support_flag='--no-use-wheel'; } ; { ${pip_env} --log ${log}/pip.log install ${install_args} \$wheel_support_flag ${pypi_index} ${proxy_flag} ${install_args} ${install_editable} ${source}==${ensure} || ${pip_env} --log ${log}/pip.log install ${install_args} ${pypi_index} ${proxy_flag} ${install_args} ${install_editable} ${source}==${ensure} ;}",
-          unless      => "${pip_env} freeze | grep -i -e ${grep_regex}",
+          unless      => "${pip_env} freeze | grep -i -e ${grep_regex} || ${pip_env} list | sed -e 's/[ ]\\+/==/' -e 's/[()]//g' | grep -i -e ${grep_regex}",
           user        => $owner,
           group       => $group,
           cwd         => $cwd,
@@ -223,12 +228,12 @@ define python::pip (
           path        => $path,
         }
       }
-
+# 
       present: {
         # Whatever version is available.
         exec { "pip_install_${name}":
           command     => "${pip_env} wheel --help > /dev/null 2>&1 && { ${pip_env} wheel --version > /dev/null 2>&1 || wheel_support_flag='--no-use-wheel'; } ; { ${pip_env} --log ${log}/pip.log install \$wheel_support_flag ${pypi_index} ${proxy_flag} ${install_args} ${install_editable} ${source} || ${pip_env} --log ${log}/pip.log install ${pypi_index} ${proxy_flag} ${install_args} ${install_editable} ${source} ;}",
-          unless      => "${pip_env} freeze | grep -i -e ${grep_regex}",
+          unless      => "${pip_env} freeze | grep -i -e ${grep_regex} || ${pip_env} list | sed -e 's/[ ]\\+/==/' -e 's/[()]//g' | grep -i -e ${grep_regex}",
           user        => $owner,
           group       => $group,
           cwd         => $cwd,
@@ -242,7 +247,7 @@ define python::pip (
         # Latest version.
         exec { "pip_install_${name}":
           command     => "${pip_env} wheel --help > /dev/null 2>&1 && { ${pip_env} wheel --version > /dev/null 2>&1 || wheel_support_flag='--no-use-wheel'; } ; { ${pip_env} --log ${log}/pip.log install --upgrade \$wheel_support_flag ${pypi_index} ${proxy_flag} ${install_args} ${install_editable} ${source} || ${pip_env} --log ${log}/pip.log install --upgrade ${pypi_index} ${proxy_flag} ${install_args} ${install_editable} ${source} ;}",
-          unless      => "${pip_env} search ${proxy_flag} ${source} | grep -i INSTALLED | grep -i latest",
+          unless      => "${pip_env} search ${pypi_search_index} ${proxy_flag} ${source} | grep -i INSTALLED.*latest",
           user        => $owner,
           group       => $group,
           cwd         => $cwd,
@@ -255,7 +260,7 @@ define python::pip (
       default: {
         # Anti-action, uninstall.
         exec { "pip_uninstall_${name}":
-          command     => "echo y | ${pip_env} uninstall ${uninstall_args} ${proxy_flag}",
+          command     => "echo y | ${pip_env} uninstall ${uninstall_args} ${proxy_flag} ${name}",
           onlyif      => "${pip_env} freeze | grep -i -e ${grep_regex}",
           user        => $owner,
           group       => $group,
