@@ -16,5 +16,5 @@ class python::params {
     'Debian' => ['3', '3.3', '2.7'],
     'Suse'   => [],
   }
-  $use_epel               = true
+  $use_epel               = false
 }

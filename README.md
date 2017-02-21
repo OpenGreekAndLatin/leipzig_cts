@@ -1,6 +1,43 @@
 # puppet-capitains
 Puppet Module for CapiTainS deployment
 
+## Installing
+
+```bash
+wget https://apt.puppetlabs.com/puppetlabs-release-pc1-xenial.deb
+dpkg -i puppetlabs-release-pc1-xenial.deb
+apt-get update
+apt-get install puppet-agent
+```
+
+### Setting up
+
+```bash
+sudo adduser www-data
+sudo mkdir /local/www-data
+sudo chown -R www-data:www-data /local/www-data
+```
+
+### puppet-run.sh
+
+```bash
+#Bridget Almas @balmas
+cd /local/puppet && timeout 180 git pull
+/opt/puppetlabs/bin/puppet apply --modulepath=/local/puppet/modules --hiera_config=/local/puppet/hiera.yaml /local/puppet/manifests
+```
+
+### Run install
+
+```bash
+sudo sh puppet-run.sh
+```
+
+## If you have unfound dependencies
+
+```bash
+/opt/puppetlabs/bin/puppet module list --tree --modulepath=/local/puppet/modules --hiera_config=/local/puppet/hiera.yaml
+```
+
 ## Hiera Support
 
 Defining CapiTainS resources in Hiera.
