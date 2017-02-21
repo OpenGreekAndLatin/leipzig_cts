@@ -8,6 +8,7 @@ capitains::redis_host: 'localhost'
 capitains::workdir: '/local/www-data/capitains-repositories-sync-check' # Path where we clone from github and pull from
 capitains::ci_url: 'http://ci.perseids.org/api/rest/v1.0/code/'
 capitains::repo_base_url: 'https://github.com/'
+capitains::cache_dir: '/local/www-data/cache'
 capitains::repos: 
   - name: 'canonical-latinLit'
     cibase: 'PerseusDL/canonical-latinLit'

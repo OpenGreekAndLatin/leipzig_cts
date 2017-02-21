@@ -2,7 +2,7 @@
 
 import os
 from flask import Flask, request
-from werkzeug.contrib.cache import RedisCache
+from werkzeug.contrib.cache import RedisCache, FileSystemCache
 from flask_caching import Cache
 from pkg_resources import resource_filename
 
@@ -34,9 +34,13 @@ pdlrefwk = PrototypeTextInventory("urn:perseus:pdlrefwk", parent=tic)
 pdlrefwk.set_label("Reference Work", "eng")
 pdlrefwk.set_label("Oeuvres de référence", "fre")
 
-http_cache = Cache(config={'CACHE_TYPE': "redis", "CACHE_REDIS_HOST": "<%= scope.lookupvar('capitains::redis_host') %>", "CACHE_DEFAULT_TIMEOUT": None})
-nautilus_cache = RedisCache("<%= scope.lookupvar('capitains::redis_host') %>", port=6379, default_timeout=0)
+#http_cache = Cache(config={'CACHE_TYPE': "redis", "CACHE_REDIS_HOST": "<%= scope.lookupvar('capitains::redis_host') %>", "CACHE_DEFAULT_TIMEOUT": None})
+#nautilus_cache = RedisCache("<%= scope.lookupvar('capitains::redis_host') %>", port=6379, default_timeout=0)
+http_cache = Cache(config={'CACHE_TYPE': "filesystem", "CACHE_DIR": "<%= scope.lookupvar('capitains::cache_dir') %>", "CACHE_DEFAULT_TIMEOUT": None})
+nautilus_cache = FileSystemCache("<%= scope.lookupvar('capitains::cache_dir') %>", threshold=10000, default_timeout=0)
 dispatcher = CollectionDispatcher(tic)
+
+
 
 @dispatcher.inventory("urn:perseus:latinLit")
 def dispatchLatinLit(collection, path=None, **kwargs):
