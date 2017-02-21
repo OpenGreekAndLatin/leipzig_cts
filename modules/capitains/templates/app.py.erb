@@ -15,6 +15,7 @@ from flask_nemo.chunker import level_grouper
 from capitains_nautilus.flask_ext import FlaskNautilus
 from cts_leipzig_ui import CTSLeipzigUI
      
+d = "<%= @data_root %>"
 
 tic = TextInventoryCollection()
 latin = PrototypeTextInventory("urn:perseus:latinLit", parent=tic)
@@ -73,7 +74,6 @@ resolver = NautilusCTSResolver(
     cache=nautilus_cache
 )
 
-d = "<%= @data_root %>"
 app = Flask("Nautilus")
 nautilus = FlaskNautilus(
     app=app,
