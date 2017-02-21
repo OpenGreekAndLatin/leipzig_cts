@@ -16,6 +16,7 @@ apt-get install puppet-agent
 sudo adduser www-data
 sudo mkdir /local/www-data
 sudo chown -R www-data:www-data /local/www-data
+sudo mkdir /etc/gunicorn.d
 ```
 
 ### puppet-run.sh
