@@ -39,6 +39,14 @@ sudo sh puppet-run.sh
 /opt/puppetlabs/bin/puppet module list --tree --modulepath=/local/puppet/modules --hiera_config=/local/puppet/hiera.yaml
 ```
 
+## Redis conf issue
+
+Redis might not be able to save in background, add this to /etc/sysctl.conf:
+
+```bash
+vm.overcommit_memory=1
+```
+
 ## Hiera Support
 
 Defining CapiTainS resources in Hiera.
