@@ -24,11 +24,6 @@ CONFIG = {
   'python': '/usr/bin/python',
 <% end -%>
   'args': (
-<% if @args.any? -%>
-<% for arg in @args do -%>
-    '<%= arg %>',
-<% end -%>
-<% end -%>
 <% if !@virtualenv and !@bind -%>
     '--bind=unix:/tmp/gunicorn-<%= @name %>.socket',
 <% elsif @virtualenv and !@bind -%>
@@ -36,11 +31,7 @@ CONFIG = {
 <% else -%>
     '--bind=<%= @bind %>',
 <% end -%>
-<% if @workers -%>
-    '--workers=<%= @workers %>',
-<% else -%>
-    '--workers=<%= @processorcount.to_i*2 + 1 %>',
-<% end -%>
+    '--workers=<%= @processorcount.to_i*2 %>',
     '--timeout=<%= @timeout %>',
 <% if @access_log_format -%>
     '--access-logformat=<%= @access_log_format %>',

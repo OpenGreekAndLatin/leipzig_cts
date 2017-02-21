@@ -18,14 +18,13 @@ class python::install {
   $python = $::python::version ? {
     'system' => 'python',
     'pypy'   => 'pypy',
-    default  => "${python::version}", # lint:ignore:only_variable_string
+    default  => "python${python::version}",
   }
 
   $pythondev = $::osfamily ? {
     'RedHat' => "${python}-devel",
     'Debian' => "${python}-dev",
     'Suse'   => "${python}-devel",
-    'Gentoo' => undef,
   }
 
   $dev_ensure = $python::dev ? {
@@ -64,18 +63,15 @@ class python::install {
         require => Package['python'],
       }
 
-      if $pythondev {
-        package { 'python-dev':
-          ensure => $dev_ensure,
-          name   => $pythondev,
-        }
+      package { 'python-dev':
+        ensure => $dev_ensure,
+        name   => $pythondev,
       }
 
       # Install pip without pip, see https://pip.pypa.io/en/stable/installing/.
       exec { 'bootstrap pip':
         command => '/usr/bin/curl https://bootstrap.pypa.io/get-pip.py | python',
-        unless  => 'which pip',
-        path    => [ '/bin', '/usr/bin', '/usr/local/bin' ],
+        creates => '/usr/local/bin/pip',
         require => Package['python'],
       }
 
@@ -107,7 +103,7 @@ class python::install {
         default  => 'absent',
       }
 
-      package { 'centos-release-scl':
+      package { 'centos-release-SCL':
         ensure => $install_scl_repo_package,
         before => Package['scl-utils'],
       }
@@ -136,21 +132,15 @@ class python::install {
     }
     rhscl: {
       # rhscl is RedHat SCLs from softwarecollections.org
-      if $::python::rhscl_use_public_repository {
-        $scl_package = "rhscl-${::python::version}-epel-${::operatingsystemmajrelease}-${::architecture}"
-        package { $scl_package:
-          source   => "https://www.softwarecollections.org/en/scls/rhscl/${::python::version}/epel-${::operatingsystemmajrelease}-${::architecture}/download/${scl_package}.noarch.rpm",
-          provider => 'rpm',
-          tag      => 'python-scl-repo',
-        }
+      $scl_package = "rhscl-${::python::version}-epel-${::operatingsystemmajrelease}-${::architecture}"
+      package { $scl_package:
+        source   => "https://www.softwarecollections.org/en/scls/rhscl/${::python::version}/epel-${::operatingsystemmajrelease}-${::architecture}/download/${scl_package}.noarch.rpm",
+        provider => 'rpm',
+        tag      => 'python-scl-repo',
       }
 
       Package <| title == 'python' |> {
         tag => 'python-scl-package',
-      }
-
-      Package <| title == 'virtualenv' |> {
-        name => "${python}-python-virtualenv",
       }
 
       package { "${python}-scldevel":
@@ -158,19 +148,19 @@ class python::install {
         tag    => 'python-scl-package',
       }
 
-      package { "${python}-python-pip":
-        ensure => $pip_ensure,
-        tag    => 'python-pip-package',
+      if $pip_ensure != 'absent' {
+        exec { 'python-scl-pip-install':
+          command => "${python::exec_prefix}easy_install pip",
+          path    => ['/usr/bin', '/bin'],
+          creates => "/opt/rh/${python::version}/root/usr/bin/pip",
+        }
       }
 
-      if $::python::rhscl_use_public_repository {
-        Package <| tag == 'python-scl-repo' |> ->
-        Package <| tag == 'python-scl-package' |>
-      }
-
+      Package <| tag == 'python-scl-repo' |> ->
       Package <| tag == 'python-scl-package' |> ->
-      Package <| tag == 'python-pip-package' |>
+      Exec['python-scl-pip-install']
     }
+
     default: {
 
       package { 'pip':
@@ -178,11 +168,9 @@ class python::install {
         require => Package['python'],
       }
 
-      if $pythondev {
-        package { 'python-dev':
-          ensure => $dev_ensure,
-          name   => $pythondev,
-        }
+      package { 'python-dev':
+        ensure => $dev_ensure,
+        name   => $pythondev,
       }
 
       if $::osfamily == 'RedHat' {
@@ -201,32 +189,20 @@ class python::install {
 
         $virtualenv_package = "${python}-virtualenv"
       } else {
-        if $::lsbdistcodename == 'jessie' {
-          $virtualenv_package = 'virtualenv'
-        } elsif $::osfamily == 'Gentoo' {
-          $virtualenv_package = 'virtualenv'
-        } else {
-          $virtualenv_package = 'python-virtualenv'
+        $virtualenv_package = $::lsbdistcodename ? {
+          'jessie' => 'virtualenv',
+          default  => 'python-virtualenv',
         }
       }
 
-      if "${::python::version}" =~ /^3/ { #lint:ignore:only_variable_string
-        $pip_category = undef
+      if $::python::version =~ /^3/ {
         $pip_package = 'python3-pip'
-      } elsif ($::osfamily == 'RedHat') and (versioncmp($::operatingsystemmajrelease, '7') >= 0) {
-        $pip_category = undef
-        $pip_package = 'python2-pip'
-      } elsif $::osfamily == 'Gentoo' {
-        $pip_category = 'dev-python'
-        $pip_package = 'pip'
       } else {
-        $pip_category = undef
         $pip_package = 'python-pip'
       }
 
       Package <| title == 'pip' |> {
-        name     => $pip_package,
-        category => $pip_category,
+        name => $pip_package,
       }
 
       Package <| title == 'virtualenv' |> {
@@ -244,7 +220,6 @@ class python::install {
 
     package { 'gunicorn':
       ensure => $gunicorn_ensure,
-      name   => $python::gunicorn_package_name,
     }
   }
 }

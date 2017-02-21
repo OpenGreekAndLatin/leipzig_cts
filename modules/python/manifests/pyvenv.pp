@@ -59,8 +59,6 @@ define python::pyvenv (
   $environment      = [],
 ) {
 
-  include ::python
-
   if $ensure == 'present' {
 
     $virtualenv_cmd = $version ? {
