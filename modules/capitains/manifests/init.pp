@@ -6,7 +6,8 @@ class capitains($www_root,
                 $repos,
                 $workdir,
                 $venvdir,
-                $ci_url) {
+                $ci_url,
+                $cache_dir) {
   include capitains::nginx
   include capitains::dependencies
   include capitains::repos
