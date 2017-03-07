@@ -7,7 +7,8 @@ class capitains($www_root,
                 $workdir,
                 $venvdir,
                 $ci_url,
-                $cache_dir) {
+                $cache_dir,
+                $analytics_id) {
   include capitains::nginx
   include capitains::dependencies
   include capitains::repos
