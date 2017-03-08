@@ -13,7 +13,7 @@ from capitains_nautilus.cts.resolver import NautilusCTSResolver
 from flask_nemo import Nemo
 from flask_nemo.chunker import level_grouper
 from capitains_nautilus.flask_ext import FlaskNautilus
-from cts_leipzig_ui import CTSLeipzigUI
+from cts_leipzig_ui import CTSLeipzigUI, scheme_grouper
      
 d = "<%= @data_root %>"
 #
@@ -95,7 +95,7 @@ nemo = Nemo(
     cache=http_cache,
     resolver=resolver,
     chunker={
-        "default": level_grouper
+        "default": scheme_grouper
     },
     plugins=[CTSLeipzigUI("<%= scope.lookupvar('capitains::analytics_id') %>")],
     transform={
