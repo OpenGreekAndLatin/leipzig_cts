@@ -1,6 +1,7 @@
 # Webserver setup for Capitains
 class capitains::nginx {
-  class { 'nginx': 
+
+  class { '::nginx::config':
 
     gzip                => "on",
     gzip_disable        => "msie6",
@@ -10,6 +11,9 @@ class capitains::nginx {
     gzip_buffers        => "16 8k",
     gzip_http_version   => "1.1",
     gzip_types          => ["text/plain", "text/css", "application/json", "application/x-javascript", "text/xml", "application/xml", "application/xml+rss", "text/javascript"],
+  }
+
+  class { 'nginx': 
   }
 
   nginx::resource::upstream { 'upstream_app':
