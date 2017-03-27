@@ -1,12 +1,8 @@
 # Dependencies for Capitains
 class capitains::dependencies {
+
   class { 'redis::install': 
-    redis_version     => '3.2.8',
-  }
-  redis::server {
-    'master':
-    redis_memory      => '2g',
-    redis_dir         => '/local/redis-data/'
+    redis_version     => '3.2.8'
   }
 
   class { 'python':

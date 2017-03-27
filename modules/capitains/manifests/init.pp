@@ -69,4 +69,10 @@ class capitains($www_root,
     refreshonly => true,
     require     => Python::Gunicorn['vhost'],
   }
+  
+  redis::server {
+    'master':
+    redis_memory      => '2g',
+    redis_dir         => '/local/redis-data/'
+  }
 }
