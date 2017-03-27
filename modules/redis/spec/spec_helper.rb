@@ -1,16 +1,11 @@
-require 'rubygems'
+if ENV['COVERAGE'] == 'yes'
+  RSpec.configure do |c|
+    c.after(:suite) do
+      RSpec::Puppet::Coverage.report!
+    end
+  end
+end
+
 require 'puppetlabs_spec_helper/module_spec_helper'
-
-def centos_facts
-  {
-    :operatingsystem => 'CentOS',
-    :osfamily        => 'RedHat',
-  }
-end
-
-def debian_facts
-  {
-    :operatingsystem => 'Debian',
-    :osfamily        => 'Debian',
-  }
-end
+require 'rspec-puppet-facts'
+include RspecPuppetFacts
