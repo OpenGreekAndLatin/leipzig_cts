@@ -40,7 +40,8 @@ REPOS.each do |r|
 end
 
 if new_data or @force
-  shell("#{PYTHON} #{APP_ROOT}/manager.py flush")
+  shell("#{PYTHON} #{APP_ROOT}/manager.py flush_both")
   shell("#{PYTHON} #{APP_ROOT}/manager.py parse")
+  shell("#{PYTHON} #{APP_ROOT}/manager.py process_reffs")
   shell("/usr/sbin/service gunicorn restart")
 end
