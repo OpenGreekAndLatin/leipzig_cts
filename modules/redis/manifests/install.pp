@@ -64,7 +64,7 @@ class redis::install (
     # install necessary packages for build.
     case $::operatingsystem {
       'Debian', 'Ubuntu' : {
-        if !defined(Package['curl']) {
+        if !defined(Package['build-essential']) {
           ensure_packages('build-essential')
         }
         Package['build-essential'] -> Anchor['redis::prepare_build']
