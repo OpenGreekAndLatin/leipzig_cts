@@ -200,7 +200,7 @@ define redis::server (
     }
     'Debian': {
       $service_file = "/etc/systemd/system/redis-server_${redis_name}.service"
-      if $::operatingsystemmajrelease >= 8 { $has_systemd = true }
+      if scanf($::operatingsystemmajrelease, "%i")[0] >= 7 { $has_systemd = true }
     }
     default:  {
       $has_systemd = false
