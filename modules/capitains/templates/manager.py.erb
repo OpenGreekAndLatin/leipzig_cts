@@ -1,9 +1,7 @@
-from app import app, nautilus
-from capitains_nautilus.flask_ext import FlaskNautilusManager
-from flask.ext.script import Manager
+from app import resolver, nautilus
+from capitains_nautilus.manager import FlaskNautilusManager
 
-manager = Manager(app)
-manager.add_command("nautilus", FlaskNautilusManager(nautilus, app=app))
+manager = FlaskNautilusManager(resolver, nautilus)
 
 if __name__ == "__main__":
-    manager.run()
+    manager()

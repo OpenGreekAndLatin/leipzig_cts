@@ -1,6 +1,9 @@
 # Dependencies for Capitains
 class capitains::dependencies {
-  class { 'redis': }
+
+  class { 'redis::install': 
+    redis_version     => '3.2.8'
+  }
 
   class { 'python':
     version    => '3',
@@ -11,4 +14,4 @@ class capitains::dependencies {
   }
 
   ensure_packages(hiera('capitains::deps'))
-}
+}#

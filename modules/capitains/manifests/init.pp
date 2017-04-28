@@ -6,7 +6,9 @@ class capitains($www_root,
                 $repos,
                 $workdir,
                 $venvdir,
-                $ci_url) {
+                $ci_url,
+                $cache_dir,
+                $analytics_id) {
   include capitains::nginx
   include capitains::dependencies
   include capitains::repos
@@ -66,5 +68,11 @@ class capitains($www_root,
     command     => '/usr/sbin/service gunicorn restart',
     refreshonly => true,
     require     => Python::Gunicorn['vhost'],
+  }
+  
+  redis::server {
+    'master':
+    redis_memory      => '2g',
+    redis_dir         => '/local/redis-data/'
   }
 }

@@ -1,25 +1,90 @@
 # -*- coding: utf-8 -*-
 
+import os
 from flask import Flask, request
+from werkzeug.contrib.cache import RedisCache, FileSystemCache
+from flask_caching import Cache
+from pkg_resources import resource_filename
+
+from MyCapytain.resources.prototypes.cts.inventory import CtsTextInventoryCollection as TextInventoryCollection, CtsTextInventoryMetadata as PrototypeTextInventory
+from MyCapytain.resolvers.utils import CollectionDispatcher
+from capitains_nautilus.cts.resolver import NautilusCTSResolver
+
 from flask_nemo import Nemo
 from flask_nemo.chunker import level_grouper
-from capitains_nautilus.flask_ext import FlaskNautilus, WerkzeugCacheWrapper
-from werkzeug.contrib.cache import RedisCache
-from flask_cache import Cache
-from pkg_resources import resource_filename
-from cts_leipzig_ui import CTSLeipzigUI
-import os
+from capitains_nautilus.flask_ext import FlaskNautilus
+from cts_leipzig_ui import CTSLeipzigUI, scheme_grouper
      
 d = "<%= @data_root %>"
+#
+tic = TextInventoryCollection()
+latin = PrototypeTextInventory("urn:perseus:latinLit", parent=tic)
+latin.set_label("Classical Latin", "eng")
+latin.set_label("Latin Classique", "fre")
+farsi = PrototypeTextInventory("urn:perseus:farsiLit", parent=tic)
+farsi.set_label("Farsi", "eng")
+farsi.set_label("Persan", "fre")
+gc = PrototypeTextInventory("urn:perseus:greekLit", parent=tic)
+gc.set_label("Ancient Greek", "eng")
+gc.set_label("Grec Ancien", "fre")
+psci = PrototypeTextInventory("urn:perseus:pdlpsci", parent=tic)
+psci.set_label("Political Science", "eng")
+psci.set_label("Sciences Politiques", "fre")
+pdlrefwk = PrototypeTextInventory("urn:perseus:pdlrefwk", parent=tic)
+pdlrefwk.set_label("Reference Work", "eng")
+pdlrefwk.set_label("Oeuvres de référence", "fre")
+
+http_cache = Cache(config={'CACHE_TYPE': "redis", "CACHE_REDIS_HOST": "<%= scope.lookupvar('capitains::redis_host') %>", "CACHE_DEFAULT_TIMEOUT": 0})
+nautilus_cache = RedisCache("<%= scope.lookupvar('capitains::redis_host') %>", port=6379, default_timeout=0, db=0)
+#http_cache = Cache(config={'CACHE_TYPE': "filesystem", "CACHE_DIR": "<%= scope.lookupvar('capitains::cache_dir') %>", "CACHE_DEFAULT_TIMEOUT": 28800})
+#nautilus_cache = FileSystemCache("<%= scope.lookupvar('capitains::cache_dir') %>", threshold=10000, default_timeout=28800)
+dispatcher = CollectionDispatcher(tic)
+
+
+
+@dispatcher.inventory("urn:perseus:latinLit")
+def dispatchLatinLit(collection, path=None, **kwargs):
+    if collection.id.startswith("urn:cts:latinLit:"):
+        return True
+    return False
+
+@dispatcher.inventory("urn:perseus:farsiLit")
+def dispatchfFarsiLit(collection, path=None, **kwargs):
+    if collection.id.startswith("urn:cts:farsiLit:"):
+        return True
+    return False
+
+@dispatcher.inventory("urn:perseus:greekLit")
+def dispatchGreekLit(collection, path=None, **kwargs):
+    if collection.id.startswith("urn:cts:greekLit:"):
+        return True
+    return False
+
+@dispatcher.inventory("urn:perseus:pdlpsci")
+def dispatchPSCILit(collection, path=None, **kwargs):
+    if collection.id.startswith("urn:cts:pdlpsci:"):
+        return True
+    return False
+
+@dispatcher.inventory("urn:perseus:pdlrefwk")
+def dispatchREFWKLit(collection, path=None, **kwargs):
+    if collection.id.startswith("urn:cts:pdlrefwk:"):
+        return True
+    return False
+
+resolver = NautilusCTSResolver(
+    [os.path.join(d,o) for o in os.listdir(d) if os.path.isdir(os.path.join(d,o))],
+    dispatcher=dispatcher,
+    cache=nautilus_cache
+)
+
 app = Flask("Nautilus")
-nautilus_cache = RedisCache("<%= scope.lookupvar('capitains::redis_host') %>", port=6379, default_timeout=0)
 nautilus = FlaskNautilus(
     app=app,
-    prefix="/api/cts",
+    prefix="/api",
     name="nautilus",
-    resources=[os.path.join(d,o) for o in os.listdir(d) if os.path.isdir(os.path.join(d,o))],
-    parser_cache=WerkzeugCacheWrapper(nautilus_cache),
-    http_cache=Cache(config={'CACHE_TYPE': "simple"})
+    resolver=resolver,
+    flask_caching=http_cache
 )
 
 # We set up Nemo
@@ -27,17 +92,19 @@ nemo = Nemo(
     app=app,
     name="nemo",
     base_url="",
-    api_url="/api/cts",
-    retriever=nautilus.retriever,
+    cache=http_cache,
+    resolver=resolver,
     chunker={
-        "default": level_grouper
+        "default": scheme_grouper
     },
-    plugins=[CTSLeipzigUI()],
+    plugins=[CTSLeipzigUI("<%= scope.lookupvar('capitains::analytics_id') %>")],
     transform={
-        "default": resource_filename("perseus_nemo_ui","data/assets/static/xslt/epidocShort.xsl")
+        "default": resource_filename("cts_leipzig_ui","data/assets/static/xslt/epidocShort.xsl")
     },
-)
 
+)
+http_cache.init_app(app)
 app.debug = True
+
 if __name__ == "__main__":
     app.run(debug=True, host='0.0.0.0')
