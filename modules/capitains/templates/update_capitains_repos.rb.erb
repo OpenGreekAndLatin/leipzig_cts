@@ -1,15 +1,26 @@
 #!/usr/bin/ruby
+require "net/http"
+require "uri"
+require "json"
+require "openssl"
 # vim: set ft=ruby :
-
 @force = (ARGV[0] == "--force")
+@disable = (ARGV[0] == "--disable")
+REPOS = <%= scope.lookupvar('capitains::repos') %>
 APP_ROOT = "<%= scope.lookupvar('capitains::app_root') %>"
 DATA_ROOT = "<%= scope.lookupvar('capitains::data_root') %>"
 WORKDIR = "<%= scope.lookupvar('capitains::workdir') %>"
 VENVDIR = "<%= scope.lookupvar('capitains::venvdir') %>"
 CI_URL = "<%= scope.lookupvar('capitains::ci_url') %>"
-REPOS = <%= scope.lookupvar('capitains::repos') %>
 PYTHON = "#{VENVDIR}/bin/python3"
 DEBUG = ENV['DEBUG'] || false
+RELEASE_FILE = "#{APP_ROOT}/versions.py"
+
+begin
+  current_releases = JSON.parse(File.read(RELEASE_FILE))
+rescue
+  current_releases = {}
+end
 
 def debug_print(message)
   if DEBUG
@@ -26,19 +37,33 @@ def shell(cmd)
   return raw_output
 end
 
-if @force
-  debug_print "Forcing rebuild whether there is new data or not"
-end
 new_data = false
-REPOS.each do |r|
-  raw_output = `cd #{WORKDIR}/#{r['name']} && git pull`
-  if raw_output !~ /up-to-date/ or @force
-    new_data = true
-    shell("rsync -Pav --delete --exclude .git/ #{WORKDIR}/#{r['name']}/ #{DATA_ROOT}/#{r['name']}/")
-    shell("#{PYTHON} #{APP_ROOT}/hookclean.py -c #{CI_URL} -r #{r['cibase']} -b #{DATA_ROOT}/#{r['name']}/")
+unless (@disable)
+  debug_print(current_releases.to_s)
+  REPOS.each do |r|
+    url = URI.parse("#{CI_URL}/#{r['cibase']}/releases")
+    debug_print("Get #{url.to_s}")
+    http = Net::HTTP::new(url.host,url.port)
+    http.use_ssl = true
+    response = http.send_request('GET',url.request_uri)
+    if (response.code == '200')
+      json = JSON.parse(response.body)
+      new_release = json[0]['tag_name']
+      if (! current_releases[r['cibase']] || current_releases[r['cibase']] != new_release) 
+        debug_print("Updating #{r['cibase']} to #{new_release}")
+        archive = json[0]['assets'][0]['browser_download_url']
+        shell("rm -fr #{WORKDIR}/#{r['name']} && mkdir #{WORKDIR}/#{r['name']} && curl -L -o #{WORKDIR}/#{r['name']}/release.tar.gz #{archive} && cd #{WORKDIR}/#{r['name']} && tar -xzf release.tar.gz")
+        shell("rsync -Pav --delete  #{WORKDIR}/#{r['name']}/ #{DATA_ROOT}/#{r['name']}/")
+        current_releases[r['cibase']] = new_release
+        new_data = true
+      else
+        debug_print("#{r['cibase']} has no new release")
+      end
+    else
+      debug_print("Error retrieving release info from Github at #{url.to_s}: #{response.code} #{response.message}")
+    end
   end
 end
-
 if new_data or @force
   shell("#{PYTHON} #{APP_ROOT}/manager.py flush_both")
   shell("#{PYTHON} #{APP_ROOT}/manager.py parse")
