@@ -26,6 +26,8 @@ capitains::repos:
     cibase: 'PerseusDL/canonical-pdlrefwk'
   - name: 'First1KGreek'
     cibase: 'OpenGreekAndLatin/First1KGreek'
+  - name: 'priapeia'
+    cibase: 'lascivaroma/priapeia'
 #  - name: 'patrologia_latina-dev'
 #    cibase: 'OpenGreekAndLatin/patrologia_latina-dev'
 #    url: 'https://github.com/OpenGreekAndLatin/patrologia_latina-dev'
