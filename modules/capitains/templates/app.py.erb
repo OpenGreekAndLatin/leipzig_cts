@@ -33,6 +33,8 @@ psci.set_label("Sciences Politiques", "fre")
 pdlrefwk = PrototypeTextInventory("urn:perseus:pdlrefwk", parent=tic)
 pdlrefwk.set_label("Reference Work", "eng")
 pdlrefwk.set_label("Oeuvres de référence", "fre")
+hebrew = PrototypeTextInventory("urn:perseus:ancJewLit", parent=tic)
+hebrew.set_label("Classical Hebrew and Aramaic", "eng")
 
 http_cache = Cache(config={'CACHE_TYPE': "redis", "CACHE_REDIS_HOST": "<%= scope.lookupvar('capitains::redis_host') %>", "CACHE_DEFAULT_TIMEOUT": 0})
 nautilus_cache = RedisCache("<%= scope.lookupvar('capitains::redis_host') %>", port=6379, default_timeout=0)
@@ -69,6 +71,12 @@ def dispatchPSCILit(collection, path=None, **kwargs):
 @dispatcher.inventory("urn:perseus:pdlrefwk")
 def dispatchREFWKLit(collection, path=None, **kwargs):
     if collection.id.startswith("urn:cts:pdlrefwk:"):
+        return True
+    return False
+    
+@dispatcher.inventory("urn:perseus:ancJewLit")
+def dispatchAncJewLit(collection, path=None, **kwargs):
+    if collection.id.startswith("urn:cts:ancJewLit:"):
         return True
     return False
 
