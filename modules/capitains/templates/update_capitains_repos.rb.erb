@@ -13,7 +13,7 @@ WORKDIR = "<%= scope.lookupvar('capitains::workdir') %>"
 VENVDIR = "<%= scope.lookupvar('capitains::venvdir') %>"
 CI_URL = "<%= scope.lookupvar('capitains::ci_url') %>"
 PYTHON = "#{VENVDIR}/bin/python3"
-DEBUG = ENV['DEBUG'] || false
+DEBUG = true || ENV['DEBUG'] || false
 RELEASE_FILE = "#{APP_ROOT}/versions.py"
 
 begin
@@ -52,7 +52,7 @@ unless (@disable)
       if (! current_releases[r['cibase']] || current_releases[r['cibase']] != new_release) 
         debug_print("Updating #{r['cibase']} to #{new_release}")
         archive = json[0]['tarball_url']
-        shell("rm -fr #{WORKDIR}/#{r['name']} && mkdir #{WORKDIR}/#{r['name']} && curl -L -o #{WORKDIR}/#{r['name']}/release.tar.gz #{archive} && cd #{WORKDIR}/#{r['name']} && tar -xzf release.tar.gz")
+        shell("rm -fr #{WORKDIR}/#{r['name']} && mkdir #{WORKDIR}/#{r['name']} && curl -L -o #{WORKDIR}/#{r['name']}/release.tar.gz #{archive} && cd #{WORKDIR}/#{r['name']} && tar -xzf release.tar.gz && mv */* . && rm release.tar.gz")
         shell("rsync -Pav --delete  #{WORKDIR}/#{r['name']}/ #{DATA_ROOT}/#{r['name']}/")
         current_releases[r['cibase']] = new_release
         new_data = true
