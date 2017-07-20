@@ -2,8 +2,13 @@
 class capitains::dependencies {
 
   class { 'redis::install': 
-    redis_version     => '3.2.8'
+    redis_version     => '3.2.8',
   }
+
+#  redis::server {
+#    'master':
+#      redis_memory    => '4g',
+#  }
 
   class { 'python':
     version    => '3',
