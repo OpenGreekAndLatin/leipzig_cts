@@ -13,7 +13,7 @@ WORKDIR = "<%= scope.lookupvar('capitains::workdir') %>"
 VENVDIR = "<%= scope.lookupvar('capitains::venvdir') %>"
 CI_URL = "<%= scope.lookupvar('capitains::ci_url') %>"
 PYTHON = "#{VENVDIR}/bin/python3"
-DEBUG = ENV['DEBUG'] || false
+DEBUG = true || ENV['DEBUG'] || false
 RELEASE_FILE = "#{APP_ROOT}/versions.py"
 
 begin
@@ -74,7 +74,9 @@ end
 
 if new_data or @force
   File.write(RELEASE_FILE,JSON.pretty_generate(current_releases))
-  shell("#{PYTHON} #{APP_ROOT}/manager.py nautilus flush")
-  shell("#{PYTHON} #{APP_ROOT}/manager.py nautilus preprocess")
+  shell("redis-cli FLUSHALL")
+  shell("#{PYTHON} #{APP_ROOT}/manager.py parse")
+  shell("#{PYTHON} #{APP_ROOT}/manager.py process_reffs")
+  shell("redis-cli SAVE")
   shell("/usr/sbin/service gunicorn restart")
 end

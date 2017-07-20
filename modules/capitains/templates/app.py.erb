@@ -34,7 +34,7 @@ pdlrefwk = PrototypeTextInventory("urn:perseus:pdlrefwk", parent=tic)
 pdlrefwk.set_label("Reference Work", "eng")
 pdlrefwk.set_label("Oeuvres de référence", "fre")
 hebrew = PrototypeTextInventory("urn:perseus:ancJewLit", parent=tic)
-hebrew.set_label("Classical Hebrew and Aramaic", "eng")
+hebrew.set_label("Classical Hebrew and Jewish Aramaic", "eng")
 
 http_cache = Cache(config={'CACHE_TYPE': "redis", "CACHE_REDIS_HOST": "<%= scope.lookupvar('capitains::redis_host') %>", "CACHE_DEFAULT_TIMEOUT": 0})
 nautilus_cache = RedisCache("<%= scope.lookupvar('capitains::redis_host') %>", port=6379, default_timeout=0)
