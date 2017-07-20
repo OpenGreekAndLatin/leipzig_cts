@@ -13,7 +13,7 @@ WORKDIR = "<%= scope.lookupvar('capitains::workdir') %>"
 VENVDIR = "<%= scope.lookupvar('capitains::venvdir') %>"
 CI_URL = "<%= scope.lookupvar('capitains::ci_url') %>"
 PYTHON = "#{VENVDIR}/bin/python3"
-DEBUG = true || ENV['DEBUG'] || false
+DEBUG = ENV['DEBUG'] || false
 RELEASE_FILE = "#{APP_ROOT}/versions.py"
 
 begin
@@ -49,18 +49,11 @@ unless (@disable)
     if (response.code == '200')
       json = JSON.parse(response.body)
       new_release = json[0]['tag_name']
-      if (! current_releases[r['cibase']] || current_releases[r['cibase']] != new_release || @force) 
+      if (! current_releases[r['cibase']] || current_releases[r['cibase']] != new_release) 
         debug_print("Updating #{r['cibase']} to #{new_release}")
-        if json[0]['assets'].size > 0
-          archive = json[0]['assets'][0]['browser_download_url']
-          shell("rm -fr #{WORKDIR}/#{r['name']} && mkdir #{WORKDIR}/#{r['name']} && curl -L -o #{WORKDIR}/#{r['name']}/release.tar.gz #{archive} && cd #{WORKDIR}/#{r['name']} && tar -xzf release.tar.gz")
-          shell("rsync -Pav --delete  #{WORKDIR}/#{r['name']}/ #{DATA_ROOT}/#{r['name']}/")
-        else
-          archive = json[0]['zipball_url']
-          shell("rm -fr #{WORKDIR}/#{r['name']} && mkdir #{WORKDIR}/#{r['name']} && curl -L -o #{WORKDIR}/#{r['name']}/release.zip #{archive} && cd #{WORKDIR}/#{r['name']} && unzip release.zip")
-          zip_base_dir = r['cibase'].sub(/\//, '-')
-          shell("rsync -Pav --delete  #{WORKDIR}/#{r['name']}/#{zip_base_dir}*/ #{DATA_ROOT}/#{r['name']}/")
-        end
+        archive = json[0]['assets'][0]['browser_download_url']
+        shell("rm -fr #{WORKDIR}/#{r['name']} && mkdir #{WORKDIR}/#{r['name']} && curl -L -o #{WORKDIR}/#{r['name']}/release.tar.gz #{archive} && cd #{WORKDIR}/#{r['name']} && tar -xzf release.tar.gz")
+        shell("rsync -Pav --delete  #{WORKDIR}/#{r['name']}/ #{DATA_ROOT}/#{r['name']}/")
         current_releases[r['cibase']] = new_release
         new_data = true
       else
@@ -71,10 +64,8 @@ unless (@disable)
     end
   end
 end
-
 if new_data or @force
-  File.write(RELEASE_FILE,JSON.pretty_generate(current_releases))
-  shell("redis-cli FLUSHALL")
+  shell("#{PYTHON} #{APP_ROOT}/manager.py flush_both")
   shell("#{PYTHON} #{APP_ROOT}/manager.py parse")
   shell("#{PYTHON} #{APP_ROOT}/manager.py process_reffs")
   shell("redis-cli SAVE")

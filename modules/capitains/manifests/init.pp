@@ -72,7 +72,7 @@ class capitains($www_root,
   
   redis::server {
     'master':
-    redis_memory      => '2g',
+    redis_memory      => '4g',
     redis_dir         => '/local/redis-data/'
   }
 }
