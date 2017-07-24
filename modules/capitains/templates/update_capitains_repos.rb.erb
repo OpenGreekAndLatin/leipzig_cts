@@ -74,9 +74,11 @@ end
 
 if new_data or @force
   File.write(RELEASE_FILE,JSON.pretty_generate(current_releases))
+  shell("/usr/sbin/service gunicorn stop")
   shell("redis-cli FLUSHALL")
+  shell("#{PYTHON} #{APP_ROOT}/manager.py flush_both")
   shell("#{PYTHON} #{APP_ROOT}/manager.py parse")
   shell("#{PYTHON} #{APP_ROOT}/manager.py process_reffs")
-  shell("redis-cli SAVE")
-  shell("/usr/sbin/service gunicorn restart")
+  #shell("redis-cli SAVE")
+  shell("/usr/sbin/service gunicorn start")
 end
