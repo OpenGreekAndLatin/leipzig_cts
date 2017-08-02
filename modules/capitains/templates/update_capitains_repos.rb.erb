@@ -78,7 +78,7 @@ if new_data or @force
   shell("redis-cli FLUSHALL")
   shell("#{PYTHON} #{APP_ROOT}/manager.py flush_both")
   shell("#{PYTHON} #{APP_ROOT}/manager.py parse")
-  shell("#{PYTHON} #{APP_ROOT}/manager.py process_reffs")
-  #shell("redis-cli SAVE")
+  #shell("#{PYTHON} #{APP_ROOT}/manager.py process_reffs")
+  shell("redis-cli SAVE")
   shell("/usr/sbin/service gunicorn start")
 end
