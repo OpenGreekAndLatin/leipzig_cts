@@ -30,6 +30,8 @@ capitains::repos:
     cibase: 'lascivaroma/priapeia'
   - name: 'ancJewLitCTS'
     cibase: 'hlapin/ancJewLitCTS'
+  - name: 'lascivaroma-additional'
+    cibase: 'lascivaroma/additional-texts'
 #  - name: 'patrologia_latina-dev'
 #    cibase: 'OpenGreekAndLatin/patrologia_latina-dev'
 #    url: 'https://github.com/OpenGreekAndLatin/patrologia_latina-dev'
